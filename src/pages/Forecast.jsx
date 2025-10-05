@@ -4,7 +4,7 @@ import { TrendingUp, Clock, RefreshCw, Calendar, AlertCircle } from 'lucide-reac
 import { WiTime4, WiTime8, WiTime12 } from 'react-icons/wi'
 import { FaLeaf, FaMask, FaHome, FaExclamationTriangle } from 'react-icons/fa'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'https://nasa-spaceapp-challenge-1.onrender.com'
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://nasa-spaceapp-challenge.fly.dev'
 
 export default function Forecast(){
   const [hours, setHours] = React.useState(24)

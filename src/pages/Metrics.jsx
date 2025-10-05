@@ -4,7 +4,7 @@ import { BarChart3, TrendingUp, Target, Zap, Brain, AlertCircle, RefreshCw } fro
 import { MdModelTraining, MdPrecisionManufacturing, MdSpeed } from 'react-icons/md'
 import { FaChartLine, FaBullseye, FaCog } from 'react-icons/fa'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'https://nasa-spaceapp-challenge-1.onrender.com'
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://nasa-spaceapp-challenge.fly.dev'
 
 export default function Metrics(){
   const [data, setData] = React.useState(null)

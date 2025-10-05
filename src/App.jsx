@@ -34,7 +34,7 @@ export default function App(){
   const [recs, setRecs] = React.useState(null)
   const [mobileOpen, setMobileOpen] = React.useState(false)
 
-  const API_BASE = import.meta.env.VITE_API_BASE || 'https://nasa-spaceapp-challenge-1.onrender.com'
+  const API_BASE = import.meta.env.VITE_API_BASE || 'https://nasa-spaceapp-challenge.fly.dev'
 
   React.useEffect(()=>{
     axios.get(`${API_BASE}/current`).then(r=> setSummary(r.data)).catch(()=>{})

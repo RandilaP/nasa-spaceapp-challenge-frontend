@@ -3,7 +3,7 @@ import axios from 'axios'
 import { Bell, AlertTriangle, RefreshCw, Settings, TrendingUp, CheckCircle } from 'lucide-react'
 import { MdWarning, MdInfo, MdError } from 'react-icons/md'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'https://nasa-spaceapp-challenge-1.onrender.com'
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://nasa-spaceapp-challenge.fly.dev'
 
 export default function Alerts(){
   const [threshold, setThreshold] = React.useState(100)

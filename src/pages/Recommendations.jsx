@@ -5,7 +5,7 @@ import { FaRunning, FaLeaf, FaMask, FaHome, FaChild, FaUserMd, FaEye } from 'rea
 import { MdOutdoorGrill, MdAir, MdVisibility, MdHealthAndSafety } from 'react-icons/md'
 import { WiDaySunny, WiTime4 } from 'react-icons/wi'
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'https://nasa-spaceapp-challenge-1.onrender.com'
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://nasa-spaceapp-challenge.fly.dev'
 
 export default function Recs(){
   const [data, setData] = React.useState(null)
