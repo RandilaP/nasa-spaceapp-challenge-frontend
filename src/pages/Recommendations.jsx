@@ -1,6 +1,6 @@
 import React from 'react'
 import axios from 'axios'
-import { Heart, Home, Activity, Mask, RefreshCw, AlertTriangle, CheckCircle, Info } from 'lucide-react'
+import { Heart, Home, Activity, RefreshCw, AlertTriangle, CheckCircle, Info, Shield } from 'lucide-react'
 import { FaRunning, FaLeaf, FaMask, FaHome, FaChild, FaUserMd, FaEye } from 'react-icons/fa'
 import { MdOutdoorGrill, MdAir, MdVisibility, MdHealthAndSafety } from 'react-icons/md'
 import { WiDaySunny, WiTime4 } from 'react-icons/wi'
@@ -121,117 +121,125 @@ export default function Recs(){
       <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-500/20 rounded-lg">
-              <Heart className="text-red-400" size={24} />
+            <div className="p-3 bg-green-500/20 rounded-full">
+              <Heart className="text-green-400" size={28} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold">Health Recommendations</h2>
-              <p className="text-white/70 text-sm">Personalized advice based on current air quality</p>
+              <h2 className="text-3xl font-bold">What Should I Do Today? 🤔</h2>
+              <p className="text-white/80 text-base">Simple tips to stay healthy based on today's air quality</p>
             </div>
           </div>
           <button 
             onClick={fetchRecommendations}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 disabled:opacity-50 shadow-lg"
+            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-blue-500 text-white rounded-full hover:from-green-600 hover:to-blue-600 transition-all duration-200 disabled:opacity-50 shadow-lg text-lg font-medium"
           >
-            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-            Refresh
+            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+            Get Tips
           </button>
         </div>
       </div>
 
-      {/* AQI Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Current AQI */}
-        <div className="glass-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <MdAir className="text-blue-400" size={20} />
-              <h3 className="font-semibold">Current Air Quality</h3>
-            </div>
-            <div className={`px-3 py-1 rounded-full text-xs font-medium ${currentLevel.bg} ${currentLevel.color}`}>
-              {currentLevel.level}
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {currentLevel.icon}
-            <div>
-              <div className="text-2xl font-bold">{data.current_aqi}</div>
-              <div className="text-xs text-white/60">AQI Index</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Forecast AQI */}
-        <div className="glass-card p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <WiTime4 className="text-purple-400" size={20} />
-              <h3 className="font-semibold">Forecast Peak</h3>
-            </div>
-            <div className={`px-3 py-1 rounded-full text-xs font-medium ${forecastLevel.bg} ${forecastLevel.color}`}>
-              {forecastLevel.level}
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            {forecastLevel.icon}
-            <div>
-              <div className="text-2xl font-bold">{data.max_forecast_aqi}</div>
-              <div className="text-xs text-white/60">Max Expected</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Category Filter */}
-      <div className="glass-card p-4">
-        <div className="flex flex-wrap gap-2">
-          {filterCategories.map(category => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                selectedCategory === category 
-                  ? 'bg-red-600 text-white shadow-lg' 
-                  : 'bg-white/10 text-white/70 hover:bg-white/20'
-              }`}
-            >
-              {categoryLabels[category]}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Recommendations */}
-      <div className="space-y-4">
-        {(selectedCategory === 'all' ? Object.entries(categorizedRecs) : [[selectedCategory, categorizedRecs[selectedCategory]]])
-          .filter(([, recs]) => recs && recs.length > 0)
-          .map(([category, recs]) => (
-            <div key={category} className="glass-card p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                {category === 'outdoor' && <FaRunning className="text-blue-400" size={16} />}
-                {category === 'indoor' && <FaHome className="text-green-400" size={16} />}
-                {category === 'health' && <MdHealthAndSafety className="text-red-400" size={16} />}
-                {category === 'sensitive' && <FaMask className="text-orange-400" size={16} />}
-                {category === 'general' && <Info className="text-gray-400" size={16} />}
-                {categoryLabels[category]}
-              </h3>
-              <div className="space-y-3">
-                {recs.map((rec, index) => (
-                  <div key={rec.index || index} className="flex items-start gap-3 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">
-                    <div className="mt-1 text-white/70">
-                      {rec.icon}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-white/90 text-sm leading-relaxed">{rec.text}</p>
-                    </div>
-                    <CheckCircle className="text-green-400 mt-1" size={16} />
-                  </div>
-                ))}
+      {/* Simple Air Quality Status */}
+      <div className="glass-card p-8">
+        <div className="text-center mb-6">
+          <h3 className="text-2xl font-bold mb-4">Today's Air Quality</h3>
+          <div className="flex items-center justify-center gap-8">
+            <div className="text-center">
+              <div className={`w-20 h-20 mx-auto mb-3 rounded-full flex items-center justify-center ${currentLevel.bg}`}>
+                <span className="text-3xl">
+                  {data.current_aqi <= 50 ? '😊' : 
+                   data.current_aqi <= 100 ? '😐' : 
+                   data.current_aqi <= 150 ? '😷' : 
+                   data.current_aqi <= 200 ? '😨' : '🚨'}
+                </span>
               </div>
+              <div className="text-lg font-semibold mb-1">Right Now</div>
+              <div className={`text-xl font-bold ${currentLevel.color}`}>
+                {data.current_aqi <= 50 ? 'Great!' : 
+                 data.current_aqi <= 100 ? 'OK' : 
+                 data.current_aqi <= 150 ? 'Be Careful' : 
+                 data.current_aqi <= 200 ? 'Stay Inside' : 'Dangerous!'}
+              </div>
+              <div className="text-sm text-white/60">Level: {data.current_aqi}</div>
             </div>
-          ))
-        }
+            
+            <div className="text-center">
+              <div className={`w-20 h-20 mx-auto mb-3 rounded-full flex items-center justify-center ${forecastLevel.bg}`}>
+                <span className="text-3xl">
+                  {data.max_forecast_aqi <= 50 ? '😊' : 
+                   data.max_forecast_aqi <= 100 ? '😐' : 
+                   data.max_forecast_aqi <= 150 ? '😷' : 
+                   data.max_forecast_aqi <= 200 ? '😨' : '🚨'}
+                </span>
+              </div>
+              <div className="text-lg font-semibold mb-1">Later Today</div>
+              <div className={`text-xl font-bold ${forecastLevel.color}`}>
+                {data.max_forecast_aqi <= 50 ? 'Great!' : 
+                 data.max_forecast_aqi <= 100 ? 'OK' : 
+                 data.max_forecast_aqi <= 150 ? 'Be Careful' : 
+                 data.max_forecast_aqi <= 200 ? 'Stay Inside' : 'Dangerous!'}
+              </div>
+              <div className="text-sm text-white/60">Max Level: {data.max_forecast_aqi}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Simple Action Cards */}
+      <div className="space-y-4">
+        {data.recommendations && data.recommendations.length > 0 ? (
+          <div className="grid gap-4">
+            {data.recommendations.slice(0, 6).map((rec, index) => {
+              // Determine action type and emoji
+              const lowerRec = rec.toLowerCase()
+              let actionEmoji = '💡'
+              let actionType = 'General Tip'
+              let bgColor = 'bg-blue-500/20'
+              
+              if(lowerRec.includes('outdoor') || lowerRec.includes('exercise') || lowerRec.includes('activity')) {
+                actionEmoji = '🏃‍♂️'
+                actionType = 'Outdoor Activities'
+                bgColor = 'bg-green-500/20'
+              } else if(lowerRec.includes('indoor') || lowerRec.includes('inside') || lowerRec.includes('home')) {
+                actionEmoji = '🏠'
+                actionType = 'Indoor Tips'
+                bgColor = 'bg-purple-500/20'
+              } else if(lowerRec.includes('mask') || lowerRec.includes('sensitive') || lowerRec.includes('children')) {
+                actionEmoji = '😷'
+                actionType = 'Special Care'
+                bgColor = 'bg-orange-500/20'
+              } else if(lowerRec.includes('health') || lowerRec.includes('breathing')) {
+                actionEmoji = '❤️'
+                actionType = 'Health Tip'
+                bgColor = 'bg-red-500/20'
+              }
+              
+              return (
+                <div key={index} className={`glass-card p-6 ${bgColor} hover:scale-105 transition-transform cursor-pointer`}>
+                  <div className="flex items-start gap-4">
+                    <div className="text-4xl">{actionEmoji}</div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-white/70">{actionType}</span>
+                        <CheckCircle className="text-green-400" size={16} />
+                      </div>
+                      <p className="text-white text-base leading-relaxed">{rec}</p>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="glass-card p-8">
+            <div className="text-center">
+              <div className="text-6xl mb-4">🤷‍♂️</div>
+              <h3 className="text-xl font-semibold mb-2">No Tips Available</h3>
+              <p className="text-white/70">We're working on getting personalized recommendations for you!</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Empty State for Categories */}

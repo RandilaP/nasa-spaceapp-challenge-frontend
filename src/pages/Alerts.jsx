@@ -1,6 +1,6 @@
 import React from 'react'
 import axios from 'axios'
-import { Bell, AlertTriangle, RefreshCw, Settings, TrendingUp } from 'lucide-react'
+import { Bell, AlertTriangle, RefreshCw, Settings, TrendingUp, CheckCircle } from 'lucide-react'
 import { MdWarning, MdInfo, MdError } from 'react-icons/md'
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'https://nasa-spaceapp-challenge-1.onrender.com'
@@ -47,34 +47,22 @@ export default function Alerts(){
       <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-red-500/20 rounded-lg">
-              <Bell className="text-red-400" size={24} />
+            <div className="p-3 bg-orange-500/20 rounded-full">
+              <Bell className="text-orange-400" size={28} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold">Air Quality Alerts</h2>
-              <p className="text-white/70 text-sm">Real-time pollution warnings and notifications</p>
+              <h2 className="text-3xl font-bold">Air Quality Warnings</h2>
+              <p className="text-white/80 text-base">Get notified when air quality affects your health</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-white/10 rounded-lg p-2">
-              <Settings size={16} className="text-white/70" />
-              <span className="text-sm text-white/70">Threshold:</span>
-              <input 
-                type="number" 
-                value={threshold} 
-                onChange={e=>setThreshold(Number(e.target.value))} 
-                className="w-16 px-2 py-1 bg-white/20 border border-white/30 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" 
-                min="0"
-                max="500"
-              />
-            </div>
             <button 
               onClick={fetchAlerts} 
               disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 disabled:opacity-50 shadow-lg"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-full hover:from-orange-600 hover:to-red-600 transition-all duration-200 disabled:opacity-50 shadow-lg text-lg font-medium"
             >
-              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-              {loading ? 'Checking...' : 'Refresh'}
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+              {loading ? 'Checking...' : 'Check Now'}
             </button>
           </div>
         </div>
@@ -106,58 +94,71 @@ export default function Alerts(){
       {/* Results */}
       {data && (
         <div className="space-y-4">
-          {/* Summary Card */}
-          <div className="glass-card p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="text-orange-400" size={24} />
+          {/* Simple Status Card */}
+          <div className="glass-card p-8">
+            <div className="text-center">
+              {data.alert_count === 0 ? (
                 <div>
-                  <h3 className="text-lg font-semibold">Alert Summary</h3>
-                  <p className="text-white/70 text-sm">
-                    Found <span className="font-semibold text-orange-400">{data.alert_count}</span> alerts above AQI {data.threshold}
+                  <div className="w-16 h-16 mx-auto mb-4 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <CheckCircle className="text-green-400" size={32} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-green-400 mb-2">All Clear! 🌿</h3>
+                  <p className="text-white/80 text-lg">The air quality is good for everyone to enjoy outdoor activities.</p>
+                </div>
+              ) : (
+                <div>
+                  <div className="w-16 h-16 mx-auto mb-4 bg-red-500/20 rounded-full flex items-center justify-center">
+                    <AlertTriangle className="text-red-400" size={32} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-red-400 mb-2">Air Quality Warning! ⚠️</h3>
+                  <p className="text-white/80 text-lg">
+                    We found <span className="font-bold text-red-300">{data.alert_count}</span> times when the air quality may affect your health.
                   </p>
                 </div>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-orange-400">{data.alert_count}</div>
-                <div className="text-xs text-white/60">Active Alerts</div>
-              </div>
+              )}
             </div>
           </div>
 
-          {/* Alerts List */}
+          {/* Simple Alerts List */}
           {data.alerts && data.alerts.length > 0 ? (
-            <div className="space-y-3">
-              {data.alerts.map((alert, index) => (
-                <div key={alert.timestamp || index} className={`glass-card p-4 border-l-4 ${getSeverityColor(alert.category)}`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 flex-1">
-                      {getSeverityIcon(alert.category)}
+            <div className="space-y-4">
+              {data.alerts.map((alert, index) => {
+                const alertLevel = alert.predicted_aqi > 200 ? 'dangerous' : 
+                                 alert.predicted_aqi > 150 ? 'unhealthy' : 
+                                 alert.predicted_aqi > 100 ? 'sensitive' : 'moderate'
+                const alertColor = alertLevel === 'dangerous' ? 'bg-red-500/20 border-red-400' :
+                                 alertLevel === 'unhealthy' ? 'bg-orange-500/20 border-orange-400' :
+                                 alertLevel === 'sensitive' ? 'bg-yellow-500/20 border-yellow-400' :
+                                 'bg-blue-500/20 border-blue-400'
+                const alertEmoji = alertLevel === 'dangerous' ? '🚨' :
+                                 alertLevel === 'unhealthy' ? '⚠️' :
+                                 alertLevel === 'sensitive' ? '😷' : '⚡'
+                
+                return (
+                  <div key={alert.timestamp || index} className={`glass-card p-6 border-l-4 ${alertColor}`}>
+                    <div className="flex items-start gap-4">
+                      <div className="text-3xl">{alertEmoji}</div>
                       <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-lg font-semibold text-white">
+                            {alertLevel === 'dangerous' ? 'Stay Inside!' :
+                             alertLevel === 'unhealthy' ? 'Limit Outdoor Time' :
+                             alertLevel === 'sensitive' ? 'Sensitive People Be Careful' :
+                             'Be Aware'}
+                          </h4>
                           <span className="text-sm text-white/70">
-                            {new Date(alert.timestamp).toLocaleString()}
+                            {new Date(alert.timestamp).toLocaleDateString()} at {new Date(alert.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                           </span>
-                          <div className="flex items-center gap-2">
-                            <span className="px-2 py-1 bg-white/20 rounded-full text-xs font-medium">
-                              AQI {alert.predicted_aqi}
-                            </span>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              alert.category?.toLowerCase().includes('hazardous') ? 'bg-red-500/20 text-red-300' :
-                              alert.category?.toLowerCase().includes('very unhealthy') ? 'bg-purple-500/20 text-purple-300' :
-                              alert.category?.toLowerCase().includes('unhealthy') ? 'bg-red-400/20 text-red-300' :
-                              'bg-orange-400/20 text-orange-300'
-                            }`}>
-                              {alert.category}
-                            </span>
-                          </div>
                         </div>
-                        <p className="text-white/90 text-sm">{alert.message}</p>
+                        <p className="text-white/90 text-base leading-relaxed mb-2">{alert.message}</p>
+                        <div className="text-sm text-white/60">
+                          Air Quality Level: <span className="font-medium">{Math.round(alert.predicted_aqi)}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <div className="glass-card p-8">

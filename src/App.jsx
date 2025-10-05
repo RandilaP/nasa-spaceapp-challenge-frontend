@@ -10,14 +10,20 @@ import { Line } from 'react-chartjs-2'
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip)
 import Current from './pages/Current'
 import Forecast from './pages/Forecast'
-import Metrics from './pages/Metrics'
 import Alerts from './pages/Alerts'
 import Recs from './pages/Recommendations'
 import isoToId, { countries } from './lib/countryMap'
 
 export default function App(){
   const [route, setRoute] = React.useState('current')
-  const routes = ['current','forecast','metrics','alerts','recs']
+  const routes = ['current','forecast','alerts','recs']
+  const routeLabels = {
+    current: 'Right Now',
+    forecast: 'What\'s Next',
+    alerts: 'Warnings',
+    recs: 'What To Do',
+    metrics: 'Data'
+  }
   const [summary, setSummary] = React.useState(null)
   const [sensorData, setSensorData] = React.useState(null)
   const [sensorId] = React.useState(3917) // USA sensor
@@ -44,43 +50,52 @@ export default function App(){
     })()
   },[])
 
-  // helper to fetch weather data using OpenWeatherMap free API
+  // helper to fetch weather data - uses fallback data if API fails
   async function fetchWeatherData(lat, lon){
-    // Using a demo API key - in production, this should be secured
-    const apiKey = 'b8a1c1f7d4c2e5f8a9b3c6d1e7f2a4b5'
-    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
+    console.log('Fetching weather data...')
+    
+    // Always use fallback data for demo purposes since API keys are often invalid
+    const fallbackWeather = {
+      temp: 22,
+      feels_like: 25,
+      humidity: 65,
+      pressure: 1013,
+      wind_speed: 3.2,
+      weather: 'Clear',
+      description: 'pleasant and clear',
+      visibility: 10
+    }
     
     try{
-      const resp = await fetch(url)
-      if(resp.ok){
-        const data = await resp.json()
-        setWeather({
-          temp: Math.round(data.main.temp),
-          feels_like: Math.round(data.main.feels_like),
-          humidity: data.main.humidity,
-          pressure: data.main.pressure,
-          wind_speed: data.wind.speed,
-          wind_deg: data.wind.deg,
-          weather: data.weather[0].main,
-          description: data.weather[0].description,
-          icon: data.weather[0].icon,
-          visibility: data.visibility / 1000 // convert to km
-        })
+      // Try to fetch real weather data if API key is available
+      const apiKey = import.meta.env.VITE_WEATHER_API_KEY
+      if(apiKey && apiKey !== 'your-api-key-here') {
+        const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
+        const resp = await fetch(url)
+        
+        if(resp.ok){
+          const data = await resp.json()
+          setWeather({
+            temp: Math.round(data.main.temp),
+            feels_like: Math.round(data.main.feels_like),
+            humidity: data.main.humidity,
+            pressure: data.main.pressure,
+            wind_speed: data.wind.speed,
+            wind_deg: data.wind.deg,
+            weather: data.weather[0].main,
+            description: data.weather[0].description,
+            icon: data.weather[0].icon,
+            visibility: data.visibility / 1000 // convert to km
+          })
+          return
+        }
       }
     }catch(err){
-      console.warn('Weather fetch failed', err)
-      // Use mock weather data as fallback
-      setWeather({
-        temp: 22,
-        feels_like: 25,
-        humidity: 65,
-        pressure: 1013,
-        wind_speed: 3.2,
-        weather: 'Clear',
-        description: 'clear sky',
-        visibility: 10
-      })
+      console.warn('Weather API failed, using fallback data:', err)
     }
+    
+    // Use fallback weather data
+    setWeather(fallbackWeather)
   }
 
   // helper to fetch OpenAQ sensor data with proper environment handling
@@ -196,14 +211,16 @@ export default function App(){
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="white"/></svg>
           </div>
           <div>
-            <h1 className="text-lg font-semibold">Clear Skies</h1>
-            <p className="text-xs text-white/70">NASA Air Quality Dashboard</p>
+            <h1 className="text-2xl font-bold">Clear Skies 🌤️</h1>
+            <p className="text-sm text-white/80">Your friendly air quality guide</p>
           </div>
         </div>
 
-        <nav className="hidden sm:flex gap-2">
+        <nav className="hidden sm:flex gap-3">
           {routes.map(r=> (
-            <button key={r} onClick={()=>setRoute(r)} className={`px-3 py-1 rounded-md text-sm ${route===r? 'bg-nasa-300 text-[#071a2b]':'bg-white/10 text-white/80 hover:bg-white/20'}`}>{r.charAt(0).toUpperCase()+r.slice(1)}</button>
+            <button key={r} onClick={()=>setRoute(r)} className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${route===r? 'bg-white text-blue-900 shadow-lg':'bg-white/10 text-white/90 hover:bg-white/20'}`}>
+              {routeLabels[r]}
+            </button>
           ))}
         </nav>
         
@@ -260,9 +277,11 @@ export default function App(){
               <div className="text-lg font-semibold">Menu</div>
               <button onClick={()=>setMobileOpen(false)} className="text-sm">Close</button>
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3">
               {routes.map(r=> (
-                <button key={r} onClick={()=>{ setRoute(r); setMobileOpen(false) }} className={`text-left px-3 py-2 rounded-md ${route===r? 'bg-white/10':'hover:bg-white/5'}`}>{r.charAt(0).toUpperCase()+r.slice(1)}</button>
+                <button key={r} onClick={()=>{ setRoute(r); setMobileOpen(false) }} className={`text-left px-4 py-3 rounded-lg font-medium transition-all ${route===r? 'bg-white text-blue-900':'hover:bg-white/10'}`}>
+                  {routeLabels[r]}
+                </button>
               ))}
             </div>
           </div>
@@ -378,7 +397,6 @@ export default function App(){
         <section className="lg:col-span-2 space-y-4">
           {route==='current' && <Current currentData={summary} sensorData={sensorData} weatherData={weather} />}
           {route==='forecast' && <Forecast />}
-          {route==='metrics' && <Metrics />}
           {route==='alerts' && <Alerts />}
           {route==='recs' && <Recs />}
         </section>

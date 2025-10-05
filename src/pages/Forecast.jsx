@@ -59,42 +59,49 @@ export default function Forecast(){
       <div className="glass-card p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/20 rounded-lg">
-              <TrendingUp className="text-blue-400" size={24} />
+            <div className="p-3 bg-blue-500/20 rounded-full">
+              <TrendingUp className="text-blue-400" size={28} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold">Air Quality Forecast</h2>
-              <p className="text-white/70 text-sm">Predicted air quality trends and recommendations</p>
+              <h2 className="text-3xl font-bold">What's Coming Next? 🔮</h2>
+              <p className="text-white/80 text-base">See how the air quality will change in the coming hours</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {/* Period Selection */}
-            <div className="flex items-center gap-1 bg-white/10 rounded-lg p-1">
-              {periodOptions.map(option => (
-                <button
-                  key={option.value}
-                  onClick={() => {
-                    setHours(option.value)
-                    setSelectedPeriod(option.value.toString())
-                  }}
-                  className={`flex items-center gap-1 px-3 py-1 rounded-md text-sm transition-all ${
-                    hours === option.value 
-                      ? 'bg-blue-600 text-white shadow-lg' 
-                      : 'text-white/70 hover:bg-white/20'
-                  }`}
-                >
-                  {option.icon}
-                  {option.label}
-                </button>
-              ))}
+            {/* Simple Time Selection */}
+            <div className="flex items-center gap-2 bg-white/10 rounded-full p-1">
+              <button
+                onClick={() => setHours(6)}
+                className={`px-4 py-2 rounded-full text-sm transition-all ${
+                  hours === 6 ? 'bg-blue-600 text-white shadow-lg' : 'text-white/70 hover:bg-white/20'
+                }`}
+              >
+                Next 6 Hours
+              </button>
+              <button
+                onClick={() => setHours(24)}
+                className={`px-4 py-2 rounded-full text-sm transition-all ${
+                  hours === 24 ? 'bg-blue-600 text-white shadow-lg' : 'text-white/70 hover:bg-white/20'
+                }`}
+              >
+                Today
+              </button>
+              <button
+                onClick={() => setHours(48)}
+                className={`px-4 py-2 rounded-full text-sm transition-all ${
+                  hours === 48 ? 'bg-blue-600 text-white shadow-lg' : 'text-white/70 hover:bg-white/20'
+                }`}
+              >
+                Tomorrow
+              </button>
             </div>
             <button 
               onClick={fetchForecast} 
               disabled={loading}
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 disabled:opacity-50 shadow-lg"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-200 disabled:opacity-50 shadow-lg text-lg font-medium"
             >
-              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-              {loading ? 'Loading...' : 'Refresh'}
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+              {loading ? 'Loading...' : 'Update'}
             </button>
           </div>
         </div>
@@ -123,59 +130,55 @@ export default function Forecast(){
         </div>
       )}
 
-      {/* Forecast Results */}
+      {/* Simple Forecast Cards */}
       {!loading && !error && data.length > 0 && (
-        <div className="space-y-4">
-          {/* Summary */}
+        <div className="space-y-6">
+          {/* Summary Card */}
           <div className="glass-card p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold mb-1">Forecast Period</h3>
-                <p className="text-white/70 text-sm">Next {hours} hours • {data.length} predictions</p>
-              </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-blue-400">{hours}H</div>
-                <div className="text-xs text-white/60">Forecast Range</div>
-              </div>
+            <div className="text-center">
+              <h3 className="text-xl font-bold mb-2">Next {hours === 6 ? '6 Hours' : hours === 24 ? 'Day' : '2 Days'}</h3>
+              <p className="text-white/70">Here's what to expect with air quality</p>
             </div>
           </div>
 
-          {/* Forecast Timeline */}
-          <div className="space-y-3">
-            {data.map((item, index) => (
-              <div key={item.timestamp || index} className={`glass-card p-4 border-l-4 ${getAQIColor(item.predicted_aqi)}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {getTimeIcon(item.hours_ahead)}
-                    <div>
-                      <div className="font-medium text-white">
-                        {new Date(item.timestamp).toLocaleDateString()} {new Date(item.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+          {/* Weather-Style Forecast Cards */}
+          <div className="grid gap-4">
+            {data.slice(0, hours === 6 ? 6 : hours === 24 ? 8 : 12).map((item, index) => {
+              const aqiLevel = item.predicted_aqi <= 50 ? { emoji: '😊', text: 'Great!', color: 'text-green-400', bg: 'bg-green-500/20' } :
+                             item.predicted_aqi <= 100 ? { emoji: '😐', text: 'OK', color: 'text-yellow-400', bg: 'bg-yellow-500/20' } :
+                             item.predicted_aqi <= 150 ? { emoji: '😷', text: 'Be Careful', color: 'text-orange-400', bg: 'bg-orange-500/20' } :
+                             item.predicted_aqi <= 200 ? { emoji: '😨', text: 'Stay Inside', color: 'text-red-400', bg: 'bg-red-500/20' } :
+                             { emoji: '🚨', text: 'Dangerous!', color: 'text-purple-400', bg: 'bg-purple-500/20' }
+              
+              const timeStr = hours <= 24 ? 
+                new Date(item.timestamp).toLocaleTimeString([], {hour: 'numeric', minute:'2-digit'}) :
+                `${new Date(item.timestamp).toLocaleDateString([], {weekday: 'short'})} ${new Date(item.timestamp).toLocaleTimeString([], {hour: 'numeric'})}`
+              
+              return (
+                <div key={item.timestamp || index} className={`glass-card p-6 ${aqiLevel.bg}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="text-4xl">{aqiLevel.emoji}</div>
+                      <div>
+                        <div className="font-semibold text-lg text-white">{timeStr}</div>
+                        <div className={`font-bold text-xl ${aqiLevel.color}`}>{aqiLevel.text}</div>
+                        <div className="text-sm text-white/60">Air level: {Math.round(item.predicted_aqi)}</div>
                       </div>
-                      <div className="text-sm text-white/70">+{item.hours_ahead} hours ahead</div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <div className="flex items-center gap-2">
-                        {getAQIIcon(item.predicted_aqi)}
-                        <span className="text-lg font-bold">{Math.round(item.predicted_aqi)}</span>
-                      </div>
-                      <div className={`text-xs font-medium ${
-                        item.predicted_aqi <= 50 ? 'text-green-400' :
-                        item.predicted_aqi <= 100 ? 'text-yellow-400' :
-                        item.predicted_aqi <= 150 ? 'text-orange-400' :
-                        item.predicted_aqi <= 200 ? 'text-red-400' : 'text-purple-400'
-                      }`}>
-                        {item.aqi_category}
+                      <div className="text-sm text-white/70 mb-1">
+                        {item.hours_ahead <= 6 ? 'Soon' : 
+                         item.hours_ahead <= 12 ? 'Later today' : 
+                         item.hours_ahead <= 24 ? 'Tonight' : 'Tomorrow'}
                       </div>
                     </div>
                   </div>
+                  <div className="mt-4 p-3 bg-white/10 rounded-lg">
+                    <p className="text-white/90 text-sm">{item.health_message}</p>
+                  </div>
                 </div>
-                <div className="mt-3 p-3 bg-white/5 rounded-lg">
-                  <p className="text-sm text-white/90">{item.health_message}</p>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
