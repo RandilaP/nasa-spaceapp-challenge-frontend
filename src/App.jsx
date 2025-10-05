@@ -10,11 +10,14 @@ import Forecast from './pages/Forecast'
 import Metrics from './pages/Metrics'
 import Alerts from './pages/Alerts'
 import Recs from './pages/Recommendations'
+import isoToId, { countries } from './lib/countryMap'
 
 export default function App(){
   const [route, setRoute] = React.useState('current')
   const routes = ['current','forecast','metrics','alerts','recs']
   const [summary, setSummary] = React.useState(null)
+  const [sensorData, setSensorData] = React.useState(null)
+  const [sensorId] = React.useState(3917) // USA sensor
   const [showAlerts, setShowAlerts] = React.useState(false)
   const [alerts, setAlerts] = React.useState([])
   const [recs, setRecs] = React.useState(null)
@@ -26,7 +29,64 @@ export default function App(){
     axios.get(`${API_BASE}/current`).then(r=> setSummary(r.data)).catch(()=>{})
     axios.get(`${API_BASE}/alerts?threshold=100`).then(r=> setAlerts(r.data.alerts || [])).catch(()=>{})
     axios.get(`${API_BASE}/health-recommendations`).then(r=> setRecs(r.data)).catch(()=>{})
+    // Fetch sensor data for USA sensor
+    ;(async function(){
+      try{
+        await fetchSensorData(sensorId)
+      }catch(e){ console.warn('sensor data fetch failed', e) }
+    })()
   },[])
+
+  // helper to fetch OpenAQ sensor data using sensor endpoints via dev proxy
+  async function fetchSensorData(sensorId){
+    const apiKey = '0d8f7617cc27466bd352cc539d45a5a4b0eb3025811b100b22f8e56e8cf0eed4'
+    
+    try{
+      // Use dev proxy endpoints that will automatically add X-API-Key header
+      const endpoints = {
+        measurements: `/openaq/v3/sensors/${sensorId}/measurements?limit=100`,
+        hours: `/openaq/v3/sensors/${sensorId}/hours?limit=24`, 
+        days: `/openaq/v3/sensors/${sensorId}/days?limit=30`,
+        years: `/openaq/v3/sensors/${sensorId}/years?limit=5`
+      }
+      
+      const results = {}
+      
+      // Fetch all sensor data endpoints
+      for(const [key, url] of Object.entries(endpoints)){
+        try{
+          // Try proxy first, fallback to direct API with headers if proxy fails
+          let resp
+          try {
+            resp = await fetch(url)
+          } catch(proxyError) {
+            // Fallback to direct API call with headers
+            const directUrl = `https://api.openaq.org${url.replace('/openaq', '')}`
+            resp = await fetch(directUrl, { headers: { 'X-API-Key': apiKey } })
+          }
+          
+          if(resp.ok){
+            results[key] = await resp.json()
+          }else{
+            let bodyText = ''
+            try{ const j = await resp.json(); bodyText = JSON.stringify(j) }catch(e){ try{ bodyText = await resp.text(); }catch(e2){} }
+            console.warn(`Sensor ${key} fetch failed: ${resp.status} ${bodyText}`)
+            results[key] = null
+          }
+        }catch(err){
+          console.warn(`Sensor ${key} fetch error:`, err)
+          results[key] = null
+        }
+      }
+      
+      setSensorData({ sensorId, ...results, error: null })
+    }catch(err){
+      console.warn('Sensor data fetch failed', err)
+      setSensorData({ sensorId, error: String(err) })
+    }
+  }
+
+
 
   return (
     <div className="min-h-screen bg-space bg-[var(--space-gradient)] text-white">
@@ -113,20 +173,30 @@ export default function App(){
         <section className="lg:col-span-1 space-y-4">
           <div className="card">
             <h3 className="text-sm text-white/80">Overview</h3>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              <div className="panel-sm text-center">
-                <div className="text-xs text-white/70">AQI</div>
-                <div className="text-xl font-semibold">{summary ? Math.round(summary.aqi) : '—'}</div>
-                {summary?.recent_aqi && <div className="mt-2 h-6"><Line data={{ labels: summary.recent_aqi.map((_,i)=>i), datasets:[{ data: summary.recent_aqi, borderColor:'#60a5fa', tension:0.4, pointRadius:0 }] }} options={{ plugins:{ legend:{ display:false } }, scales:{ x:{ display:false }, y:{ display:false } }, elements:{ line:{ borderWidth:2 } } }} /></div>}
+            <div className="mt-3">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="text-xs text-white/70">Sensor Data</div>
+                <div className="text-xs">Sensor ID: {sensorId}</div>
+                <button onClick={()=>fetchSensorData(sensorId)} className="ml-2 px-2 py-1 text-xs rounded bg-white/10">Refresh Sensor</button>
+                <div className="ml-auto text-xs text-white/70">{sensorData ? `Measurements: ${sensorData.measurements?.results?.length || 0} • Hours: ${sensorData.hours?.results?.length || 0} • Days: ${sensorData.days?.results?.length || 0}` : 'Loading sensor data...'}</div>
               </div>
-              <div className="panel-sm text-center">
-                <div className="text-xs text-white/70">PM2.5</div>
-                <div className="text-xl font-semibold">{summary?.pollutants?.pm25 ? Math.round(summary.pollutants.pm25) : '—'}</div>
+
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                <div className="panel-sm text-center">
+                  <div className="text-xs text-white/70">AQI</div>
+                  <div className="text-xl font-semibold">{summary && Number.isFinite(summary.aqi) ? Math.round(summary.aqi) : '—'}</div>
+                  {summary?.recent_aqi && <div className="mt-2 h-6"><Line data={{ labels: summary.recent_aqi.map((_,i)=>i), datasets:[{ data: summary.recent_aqi, borderColor:'#60a5fa', tension:0.4, pointRadius:0 }] }} options={{ plugins:{ legend:{ display:false } }, scales:{ x:{ display:false }, y:{ display:false } }, elements:{ line:{ borderWidth:2 } } }} /></div>}
+                </div>
+                <div className="panel-sm text-center">
+                  <div className="text-xs text-white/70">PM2.5</div>
+                  <div className="text-xl font-semibold">{summary?.pollutants?.pm25 ? Math.round(summary.pollutants.pm25) : '—'}</div>
+                </div>
+                <div className="panel-sm text-center">
+                  <div className="text-xs text-white/70">O₃</div>
+                  <div className="text-xl font-semibold">{summary?.pollutants?.o3 ? Math.round(summary.pollutants.o3) : '—'}</div>
+                </div>
               </div>
-              <div className="panel-sm text-center">
-                <div className="text-xs text-white/70">O₃</div>
-                <div className="text-xl font-semibold">{summary?.pollutants?.o3 ? Math.round(summary.pollutants.o3) : '—'}</div>
-              </div>
+              
             </div>
           </div>
 
@@ -147,7 +217,7 @@ export default function App(){
         </section>
 
         <section className="lg:col-span-2 space-y-4">
-          {route==='current' && <Current />}
+          {route==='current' && <Current currentData={summary} sensorData={sensorData} />}
           {route==='forecast' && <Forecast />}
           {route==='metrics' && <Metrics />}
           {route==='alerts' && <Alerts />}

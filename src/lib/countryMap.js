@@ -1,0 +1,56 @@
+// Mapping ISO A2 -> OpenAQ country id (provided list)
+export const isoToId = {
+  AF:130, DZ:122, AD:129, AQ:176, AR:6, AM:70, AU:177, AT:89, AZ:64, BH:250,
+  BD:128, BE:60, BZ:158, BA:132, BR:45, BG:110, BF:150, KH:57, CM:147, CA:156,
+  TD:115, CL:3, CN:10, CO:138, CR:29, HR:103, CW:185, CY:8, CZ:49, CI:96,
+  CD:32, DK:71, EC:137, EG:162, EE:51, ET:14, FI:55,
+  FR:22, DE:50, GH:152, GI:154, GR:80, GT:118, GN:83, GY:24, HN:136, HK:167,
+  HU:75, IS:192, IN:9, ID:1, IQ:90, IE:78, IL:11, IT:91, JP:190, JE:224,
+  JO:144, KZ:42, KE:17, XK:65, KW:116, KG:69, LA:68, LV:52, LT:44, LU:58,
+  MG:182, MW:18, MY:2, MV:239, ML:98, MT:223, MU:219, MX:157, MD:142, MC:121,
+  MN:47, ME:131, MA:27, MZ:123, MM:127, NP:145, NL:94, NZ:180, NG:100, MK:62,
+  NO:53, OM:40, PK:109, PS:12, PY:139, PE:5, PH:183, PL:77, PT:141, PR:211,
+  QA:105, CV:222, KR:25, RO:74, RU:48, RW:126, MF:38, SM:112, SA:106, SN:99,
+  RS:97, SG:231, SK:76, SI:104, ZA:37, SS:15, ES:67, LK:184, SD:86, SE:54,
+  CH:92, TW:189, TJ:43, TH:111, GM:166, TT:199, TN:73, TR:66, TM:143, UG:133,
+  UA:34, AE:59, GB:79, US:155, UY:46, UZ:41, VN:56, ZM:81, ZW:108
+}
+
+export const countries = [
+  { id:130, name:'Afghanistan', iso:'AF' },{ id:122, name:'Algeria', iso:'DZ' },{ id:129, name:'Andorra', iso:'AD' },{ id:176, name:'Antarctica', iso:'AQ' },
+  { id:6, name:'Argentina', iso:'AR' },{ id:70, name:'Armenia', iso:'AM' },{ id:177, name:'Australia', iso:'AU' },{ id:89, name:'Austria', iso:'AT' },
+  { id:64, name:'Azerbaijan', iso:'AZ' },{ id:250, name:'Bahrain', iso:'BH' },{ id:128, name:'Bangladesh', iso:'BD' },{ id:60, name:'Belgium', iso:'BE' },
+  { id:158, name:'Belize', iso:'BZ' },{ id:132, name:'Bosnia and Herzegovina', iso:'BA' },{ id:45, name:'Brazil', iso:'BR' },{ id:110, name:'Bulgaria', iso:'BG' },
+  { id:150, name:'Burkina Faso', iso:'BF' },{ id:57, name:'Cambodia', iso:'KH' },{ id:147, name:'Cameroon', iso:'CM' },{ id:156, name:'Canada', iso:'CA' },
+  { id:115, name:'Chad', iso:'TD' },{ id:3, name:'Chile', iso:'CL' },{ id:10, name:'China', iso:'CN' },{ id:138, name:'Colombia', iso:'CO' },
+  { id:29, name:'Costa Rica', iso:'CR' },{ id:103, name:'Croatia', iso:'HR' },{ id:185, name:'Curaçao', iso:'CW' },{ id:8, name:'Cyprus', iso:'CY' },
+  { id:49, name:'Czech Republic', iso:'CZ' },{ id:96, name:'Côte d\'Ivoire', iso:'CI' },{ id:32, name:'Democratic Republic of the Congo', iso:'CD' },{ id:71, name:'Denmark', iso:'DK' },
+  { id:137, name:'Ecuador', iso:'EC' },{ id:162, name:'Egypt', iso:'EG' },{ id:51, name:'Estonia', iso:'EE' },{ id:14, name:'Ethiopia', iso:'ET' },
+  { id:55, name:'Finland', iso:'FI' },{ id:22, name:'France', iso:'FR' },{ id:50, name:'Germany', iso:'DE' },{ id:152, name:'Ghana', iso:'GH' },
+  { id:154, name:'Gibraltar', iso:'GI' },{ id:80, name:'Greece', iso:'GR' },{ id:118, name:'Guatemala', iso:'GT' },{ id:83, name:'Guinea', iso:'GN' },
+  { id:24, name:'Guyana', iso:'GY' },{ id:136, name:'Honduras', iso:'HN' },{ id:167, name:'Hong Kong', iso:'HK' },{ id:75, name:'Hungary', iso:'HU' },
+  { id:192, name:'Iceland', iso:'IS' },{ id:9, name:'India', iso:'IN' },{ id:1, name:'Indonesia', iso:'ID' },{ id:90, name:'Iraq', iso:'IQ' },
+  { id:78, name:'Ireland', iso:'IE' },{ id:11, name:'Israel', iso:'IL' },{ id:91, name:'Italy', iso:'IT' },{ id:190, name:'Japan', iso:'JP' },
+  { id:224, name:'Jersey', iso:'JE' },{ id:144, name:'Jordan', iso:'JO' },{ id:42, name:'Kazakhstan', iso:'KZ' },{ id:17, name:'Kenya', iso:'KE' },
+  { id:65, name:'Kosovo', iso:'XK' },{ id:116, name:'Kuwait', iso:'KW' },{ id:69, name:'Kyrgyzstan', iso:'KG' },{ id:68, name:'Lao PDR', iso:'LA' },
+  { id:52, name:'Latvia', iso:'LV' },{ id:44, name:'Lithuania', iso:'LT' },{ id:58, name:'Luxembourg', iso:'LU' },{ id:182, name:'Madagascar', iso:'MG' },
+  { id:18, name:'Malawi', iso:'MW' },{ id:2, name:'Malaysia', iso:'MY' },{ id:239, name:'Maldives', iso:'MV' },{ id:98, name:'Mali', iso:'ML' },
+  { id:223, name:'Malta', iso:'MT' },{ id:219, name:'Mauritius', iso:'MU' },{ id:157, name:'Mexico', iso:'MX' },{ id:142, name:'Moldova', iso:'MD' },
+  { id:121, name:'Monaco', iso:'MC' },{ id:47, name:'Mongolia', iso:'MN' },{ id:131, name:'Montenegro', iso:'ME' },{ id:27, name:'Morocco', iso:'MA' },
+  { id:123, name:'Mozambique', iso:'MZ' },{ id:127, name:'Myanmar', iso:'MM' },{ id:145, name:'Nepal', iso:'NP' },{ id:94, name:'Netherlands', iso:'NL' },
+  { id:180, name:'New Zealand', iso:'NZ' },{ id:100, name:'Nigeria', iso:'NG' },{ id:62, name:'North Macedonia', iso:'MK' },{ id:53, name:'Norway', iso:'NO' },
+  { id:40, name:'Oman', iso:'OM' },{ id:109, name:'Pakistan', iso:'PK' },{ id:12, name:'Palestine', iso:'PS' },{ id:139, name:'Paraguay', iso:'PY' },
+  { id:5, name:'Peru', iso:'PE' },{ id:183, name:'Philippines', iso:'PH' },{ id:77, name:'Poland', iso:'PL' },{ id:141, name:'Portugal', iso:'PT' },
+  { id:211, name:'Puerto Rico', iso:'PR' },{ id:105, name:'Qatar', iso:'QA' },{ id:222, name:'Republic of Cabo Verde', iso:'CV' },{ id:25, name:'Republic of Korea', iso:'KR' },
+  { id:74, name:'Romania', iso:'RO' },{ id:48, name:'Russian Federation', iso:'RU' },{ id:126, name:'Rwanda', iso:'RW' },{ id:38, name:'Saint-Martin', iso:'MF' },
+  { id:112, name:'San Marino', iso:'SM' },{ id:106, name:'Saudi Arabia', iso:'SA' },{ id:99, name:'Senegal', iso:'SN' },{ id:97, name:'Serbia', iso:'RS' },
+  { id:231, name:'Singapore', iso:'SG' },{ id:76, name:'Slovakia', iso:'SK' },{ id:104, name:'Slovenia', iso:'SI' },{ id:37, name:'South Africa', iso:'ZA' },
+  { id:15, name:'South Sudan', iso:'SS' },{ id:67, name:'Spain', iso:'ES' },{ id:184, name:'Sri Lanka', iso:'LK' },{ id:86, name:'Sudan', iso:'SD' },
+  { id:54, name:'Sweden', iso:'SE' },{ id:92, name:'Switzerland', iso:'CH' },{ id:189, name:'Taiwan', iso:'TW' },{ id:43, name:'Tajikistan', iso:'TJ' },
+  { id:111, name:'Thailand', iso:'TH' },{ id:166, name:'The Gambia', iso:'GM' },{ id:199, name:'Trinidad and Tobago', iso:'TT' },{ id:73, name:'Tunisia', iso:'TN' },
+  { id:66, name:'Turkey', iso:'TR' },{ id:143, name:'Turkmenistan', iso:'TM' },{ id:133, name:'Uganda', iso:'UG' },{ id:34, name:'Ukraine', iso:'UA' },
+  { id:59, name:'United Arab Emirates', iso:'AE' },{ id:79, name:'United Kingdom', iso:'GB' },{ id:155, name:'United States', iso:'US' },{ id:46, name:'Uruguay', iso:'UY' },
+  { id:41, name:'Uzbekistan', iso:'UZ' },{ id:56, name:'Vietnam', iso:'VN' },{ id:81, name:'Zambia', iso:'ZM' },{ id:108, name:'Zimbabwe', iso:'ZW' }
+]
+
+export default isoToId
