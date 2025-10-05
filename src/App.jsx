@@ -1,6 +1,9 @@
 import React from 'react'
 import axios from 'axios'
 import { Bell } from 'lucide-react'
+import { WiDaySunny, WiCloudy, WiRain, WiSnow, WiThunderstorm, WiWindy } from 'react-icons/wi'
+import { FaLeaf, FaRunning, FaMask, FaHome } from 'react-icons/fa'
+import { MdAir, MdLocationOn } from 'react-icons/md'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip } from 'chart.js'
 import { Line } from 'react-chartjs-2'
 
@@ -18,6 +21,8 @@ export default function App(){
   const [summary, setSummary] = React.useState(null)
   const [sensorData, setSensorData] = React.useState(null)
   const [sensorId] = React.useState(3917) // USA sensor
+  const [weather, setWeather] = React.useState(null)
+  const [location, setLocation] = React.useState({ city: 'Los Angeles', lat: 34.0522, lon: -118.2437 })
   const [showAlerts, setShowAlerts] = React.useState(false)
   const [alerts, setAlerts] = React.useState([])
   const [recs, setRecs] = React.useState(null)
@@ -29,13 +34,54 @@ export default function App(){
     axios.get(`${API_BASE}/current`).then(r=> setSummary(r.data)).catch(()=>{})
     axios.get(`${API_BASE}/alerts?threshold=100`).then(r=> setAlerts(r.data.alerts || [])).catch(()=>{})
     axios.get(`${API_BASE}/health-recommendations`).then(r=> setRecs(r.data)).catch(()=>{})
-    // Fetch sensor data for USA sensor
+    
+    // Fetch weather and sensor data
     ;(async function(){
       try{
+        await fetchWeatherData(location.lat, location.lon)
         await fetchSensorData(sensorId)
-      }catch(e){ console.warn('sensor data fetch failed', e) }
+      }catch(e){ console.warn('data fetch failed', e) }
     })()
   },[])
+
+  // helper to fetch weather data using OpenWeatherMap free API
+  async function fetchWeatherData(lat, lon){
+    // Using a demo API key - in production, this should be secured
+    const apiKey = 'b8a1c1f7d4c2e5f8a9b3c6d1e7f2a4b5'
+    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
+    
+    try{
+      const resp = await fetch(url)
+      if(resp.ok){
+        const data = await resp.json()
+        setWeather({
+          temp: Math.round(data.main.temp),
+          feels_like: Math.round(data.main.feels_like),
+          humidity: data.main.humidity,
+          pressure: data.main.pressure,
+          wind_speed: data.wind.speed,
+          wind_deg: data.wind.deg,
+          weather: data.weather[0].main,
+          description: data.weather[0].description,
+          icon: data.weather[0].icon,
+          visibility: data.visibility / 1000 // convert to km
+        })
+      }
+    }catch(err){
+      console.warn('Weather fetch failed', err)
+      // Use mock weather data as fallback
+      setWeather({
+        temp: 22,
+        feels_like: 25,
+        humidity: 65,
+        pressure: 1013,
+        wind_speed: 3.2,
+        weather: 'Clear',
+        description: 'clear sky',
+        visibility: 10
+      })
+    }
+  }
 
   // helper to fetch OpenAQ sensor data using sensor endpoints via dev proxy
   async function fetchSensorData(sensorId){
@@ -86,7 +132,56 @@ export default function App(){
     }
   }
 
+  // Function to get weather icon component
+  function getWeatherIcon(weatherType, size = 32) {
+    const iconProps = { size, color: '#60a5fa' }
+    switch(weatherType?.toLowerCase()) {
+      case 'clear': return <WiDaySunny {...iconProps} />
+      case 'clouds': return <WiCloudy {...iconProps} />
+      case 'rain': return <WiRain {...iconProps} />
+      case 'snow': return <WiSnow {...iconProps} />
+      case 'thunderstorm': return <WiThunderstorm {...iconProps} />
+      default: return <WiDaySunny {...iconProps} />
+    }
+  }
 
+  // Smart recommendations based on AQI + Weather
+  function getSmartRecommendations() {
+    const aqi = summary?.aqi || 0
+    const temp = weather?.temp || 20
+    const humidity = weather?.humidity || 50
+    const windSpeed = weather?.wind_speed || 0
+    
+    const recommendations = []
+    
+    // Air quality based recommendations
+    if (aqi <= 50) {
+      recommendations.push({ icon: <FaRunning color="#10b981" />, text: "Perfect for outdoor activities!", type: "good" })
+    } else if (aqi <= 100) {
+      recommendations.push({ icon: <FaLeaf color="#f59e0b" />, text: "Outdoor activities OK, consider reducing intensity", type: "moderate" })
+    } else if (aqi <= 150) {
+      recommendations.push({ icon: <FaMask color="#ef4444" />, text: "Sensitive individuals should wear masks outdoors", type: "unhealthy" })
+    } else {
+      recommendations.push({ icon: <FaHome color="#dc2626" />, text: "Stay indoors and avoid outdoor activities", type: "dangerous" })
+    }
+    
+    // Weather-based modifications
+    if (temp > 30) {
+      recommendations.push({ icon: <WiDaySunny color="#f59e0b" />, text: "Stay hydrated! Very hot weather", type: "warning" })
+    } else if (temp < 0) {
+      recommendations.push({ icon: <WiSnow color="#3b82f6" />, text: "Bundle up! Freezing temperatures", type: "warning" })
+    }
+    
+    if (humidity > 80) {
+      recommendations.push({ icon: <WiCloudy color="#6b7280" />, text: "High humidity may worsen air quality effects", type: "info" })
+    }
+    
+    if (windSpeed < 1) {
+      recommendations.push({ icon: <WiWindy color="#8b5cf6" />, text: "Low wind may trap pollutants", type: "warning" })
+    }
+    
+    return recommendations
+  }
 
   return (
     <div className="min-h-screen bg-space bg-[var(--space-gradient)] text-white">
@@ -171,53 +266,112 @@ export default function App(){
 
       <main className="container mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4 py-4">
         <section className="lg:col-span-1 space-y-4">
+          {/* Current Conditions Card */}
           <div className="card">
-            <h3 className="text-sm text-white/80">Overview</h3>
-            <div className="mt-3">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="text-xs text-white/70">Sensor Data</div>
-                <div className="text-xs">Sensor ID: {sensorId}</div>
-                <button onClick={()=>fetchSensorData(sensorId)} className="ml-2 px-2 py-1 text-xs rounded bg-white/10">Refresh Sensor</button>
-                <div className="ml-auto text-xs text-white/70">{sensorData ? `Measurements: ${sensorData.measurements?.results?.length || 0} • Hours: ${sensorData.hours?.results?.length || 0} • Days: ${sensorData.days?.results?.length || 0}` : 'Loading sensor data...'}</div>
+            <div className="flex items-center gap-2 mb-4">
+              <MdLocationOn size={20} color="#60a5fa" />
+              <h3 className="text-lg font-semibold">{location.city}</h3>
+              <button onClick={()=>fetchWeatherData(location.lat, location.lon)} className="ml-auto px-2 py-1 text-xs rounded bg-white/10 hover:bg-white/20">
+                Refresh
+              </button>
+            </div>
+            
+            {/* Air Quality Status */}
+            <div className="mb-4 p-4 rounded-lg bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-white/10">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-2xl font-bold">{summary && Number.isFinite(summary.aqi) ? Math.round(summary.aqi) : '—'}</div>
+                  <div className="text-sm text-white/80">Air Quality Index</div>
+                </div>
+                <div className="text-right">
+                  <MdAir size={32} color="#60a5fa" />
+                  <div className="text-xs text-white/70 mt-1">
+                    {summary?.aqi <= 50 ? 'Good' : summary?.aqi <= 100 ? 'Moderate' : summary?.aqi <= 150 ? 'Unhealthy for Sensitive' : 'Unhealthy'}
+                  </div>
+                </div>
               </div>
+            </div>
 
-              <div className="mt-2 grid grid-cols-3 gap-2">
-                <div className="panel-sm text-center">
-                  <div className="text-xs text-white/70">AQI</div>
-                  <div className="text-xl font-semibold">{summary && Number.isFinite(summary.aqi) ? Math.round(summary.aqi) : '—'}</div>
-                  {summary?.recent_aqi && <div className="mt-2 h-6"><Line data={{ labels: summary.recent_aqi.map((_,i)=>i), datasets:[{ data: summary.recent_aqi, borderColor:'#60a5fa', tension:0.4, pointRadius:0 }] }} options={{ plugins:{ legend:{ display:false } }, scales:{ x:{ display:false }, y:{ display:false } }, elements:{ line:{ borderWidth:2 } } }} /></div>}
-                </div>
-                <div className="panel-sm text-center">
-                  <div className="text-xs text-white/70">PM2.5</div>
-                  <div className="text-xl font-semibold">{summary?.pollutants?.pm25 ? Math.round(summary.pollutants.pm25) : '—'}</div>
-                </div>
-                <div className="panel-sm text-center">
-                  <div className="text-xs text-white/70">O₃</div>
-                  <div className="text-xl font-semibold">{summary?.pollutants?.o3 ? Math.round(summary.pollutants.o3) : '—'}</div>
+            {/* Weather Status */}
+            {weather && (
+              <div className="mb-4 p-4 rounded-lg bg-gradient-to-r from-orange-500/20 to-yellow-500/20 border border-white/10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold">{weather.temp}°C</div>
+                    <div className="text-sm text-white/80 capitalize">{weather.description}</div>
+                    <div className="text-xs text-white/60">Feels like {weather.feels_like}°C</div>
+                  </div>
+                  <div className="text-right">
+                    {getWeatherIcon(weather.weather, 36)}
+                    <div className="text-xs text-white/70 mt-1">
+                      {weather.humidity}% humidity
+                    </div>
+                  </div>
                 </div>
               </div>
-              
+            )}
+
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="panel-sm text-center">
+                <div className="text-xs text-white/70">PM2.5</div>
+                <div className="text-lg font-semibold">{summary?.pollutants?.pm25 ? Math.round(summary.pollutants.pm25) : '—'} µg/m³</div>
+              </div>
+              <div className="panel-sm text-center">
+                <div className="text-xs text-white/70">Wind</div>
+                <div className="text-lg font-semibold">{weather?.wind_speed ? Math.round(weather.wind_speed) : '—'} m/s</div>
+              </div>
             </div>
           </div>
 
+          {/* Smart Recommendations Card */}
           <div className="card">
-            <h3 className="text-sm text-white/80">Alerts</h3>
-            <div className="mt-3 text-sm text-white/70">No active alerts</div>
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <FaLeaf color="#10b981" />
+              Health Recommendations
+            </h3>
+            <div className="space-y-3">
+              {getSmartRecommendations().slice(0, 3).map((rec, idx) => (
+                <div key={idx} className={`flex items-start gap-3 p-3 rounded-lg ${
+                  rec.type === 'good' ? 'bg-green-500/20 border border-green-500/30' :
+                  rec.type === 'moderate' ? 'bg-yellow-500/20 border border-yellow-500/30' :
+                  rec.type === 'unhealthy' ? 'bg-red-500/20 border border-red-500/30' :
+                  rec.type === 'dangerous' ? 'bg-red-600/20 border border-red-600/30' :
+                  'bg-blue-500/20 border border-blue-500/30'
+                }`}>
+                  <div className="mt-0.5">{rec.icon}</div>
+                  <div className="text-sm">{rec.text}</div>
+                </div>
+              ))}
+              <button onClick={()=>setRoute('recs')} className="w-full mt-3 px-3 py-2 rounded-md bg-nasa-300 text-[#071a2b] text-sm font-medium hover:bg-nasa-400 transition-colors">
+                View All Recommendations
+              </button>
+            </div>
           </div>
-          {recs && (
-            <div className="card">
-              <h3 className="text-sm text-white/80">Recommendation</h3>
-              <div className="mt-2 text-sm">
-                <div className="font-medium">{recs.recommendations?.[0] || 'Stay informed'}</div>
-                <div className="mt-2 text-xs text-white/70">Current AQI: {recs.current_aqi}</div>
-                <div className="mt-3"><button onClick={()=>setRoute('recs')} className="px-3 py-1 rounded-md bg-nasa-300 text-[#071a2b] text-sm">See all</button></div>
+
+          {/* Alerts Card */}
+          {alerts.length > 0 && (
+            <div className="card border-l-4 border-red-500">
+              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 text-red-400">
+                <Bell size={18} />
+                Active Alerts
+              </h3>
+              <div className="space-y-2">
+                {alerts.slice(0, 2).map(alert => (
+                  <div key={alert.timestamp} className="p-3 bg-red-500/20 rounded-lg border border-red-500/30">
+                    <div className="flex justify-between items-start">
+                      <div className="text-sm">{alert.message}</div>
+                      <div className="text-xs text-red-300 font-semibold">AQI {alert.predicted_aqi}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
         </section>
 
         <section className="lg:col-span-2 space-y-4">
-          {route==='current' && <Current currentData={summary} sensorData={sensorData} />}
+          {route==='current' && <Current currentData={summary} sensorData={sensorData} weatherData={weather} />}
           {route==='forecast' && <Forecast />}
           {route==='metrics' && <Metrics />}
           {route==='alerts' && <Alerts />}
