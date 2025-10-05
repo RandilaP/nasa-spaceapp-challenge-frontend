@@ -83,17 +83,25 @@ export default function App(){
     }
   }
 
-  // helper to fetch OpenAQ sensor data using sensor endpoints via dev proxy
+  // helper to fetch OpenAQ sensor data with proper environment handling
   async function fetchSensorData(sensorId){
     const apiKey = '0d8f7617cc27466bd352cc539d45a5a4b0eb3025811b100b22f8e56e8cf0eed4'
+    const isDevelopment = import.meta.env.DEV
     
     try{
-      // Use dev proxy endpoints that will automatically add X-API-Key header
-      const endpoints = {
+      // Define endpoints based on environment
+      const endpoints = isDevelopment ? {
+        // Use proxy in development
         measurements: `/openaq/v3/sensors/${sensorId}/measurements?limit=100`,
         hours: `/openaq/v3/sensors/${sensorId}/hours?limit=24`, 
         days: `/openaq/v3/sensors/${sensorId}/days?limit=30`,
         years: `/openaq/v3/sensors/${sensorId}/years?limit=5`
+      } : {
+        // Direct API calls in production
+        measurements: `https://api.openaq.org/v3/sensors/${sensorId}/measurements?limit=100`,
+        hours: `https://api.openaq.org/v3/sensors/${sensorId}/hours?limit=24`, 
+        days: `https://api.openaq.org/v3/sensors/${sensorId}/days?limit=30`,
+        years: `https://api.openaq.org/v3/sensors/${sensorId}/years?limit=5`
       }
       
       const results = {}
@@ -101,15 +109,12 @@ export default function App(){
       // Fetch all sensor data endpoints
       for(const [key, url] of Object.entries(endpoints)){
         try{
-          // Try proxy first, fallback to direct API with headers if proxy fails
-          let resp
-          try {
-            resp = await fetch(url)
-          } catch(proxyError) {
-            // Fallback to direct API call with headers
-            const directUrl = `https://api.openaq.org${url.replace('/openaq', '')}`
-            resp = await fetch(directUrl, { headers: { 'X-API-Key': apiKey } })
+          const fetchOptions = isDevelopment ? {} : { 
+            headers: { 'X-API-Key': apiKey },
+            mode: 'cors'
           }
+          
+          const resp = await fetch(url, fetchOptions)
           
           if(resp.ok){
             results[key] = await resp.json()
